@@ -1,8 +1,8 @@
 # Izari Docs
 
-[**Live Demo →**](https://nextra-docs-template.vercel.app)
+[**Live Demo →**](https://izari-docs-phi.vercel.app/)
 
-[![](.github/screenshot.png)](https://nextra-docs-template.vercel.app)
+[![](.github/screenshot.png)](blob:https://vercel.com/85d77b6a-51a6-4237-be49-08ac08d83831)
 
 ## Tools
 
