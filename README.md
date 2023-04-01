@@ -2,7 +2,7 @@
 
 [**Live Demo →**](https://izari-docs-phi.vercel.app/)
 
-[![](.github/screenshot.png)](blob:https://vercel.com/85d77b6a-51a6-4237-be49-08ac08d83831)
+[![](.github/izari-screenshot.png)](blob:https://vercel.com/85d77b6a-51a6-4237-be49-08ac08d83831)
 
 ## Tools
 
