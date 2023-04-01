@@ -1,0 +1,118 @@
+```typescript
+export class PaymentChannel {
+  /**
+   * Create new PaymentChannel instance from raw data
+   * @param channelAddress - payment channel address
+   * @param from - payment channel sender address
+   * @param to - payment channel receiver address
+   */
+  constructor(protected channelAddress: Address, protected from: Address, protected to: Address) {}
+
+  /**
+   * Getter for payment channel address
+   */
+  getAddress = (): Address => this.channelAddress
+
+  /**
+   * Getter for payment channel receiver address
+   */
+  getTo = (): Address => this.to
+
+  /**
+   * Getter for payment channel sender address
+   */
+  getFrom = (): Address => this.from
+
+  /**
+   * Allows to create a broadcast a transaction to create a new payment channel. It will not wait the tx to be processed.
+   * It will just return the transaction cid. In order to create a PaymentChannel instance, the channel address
+   * must be fetched, which implies we should wait until the tx gets into a block.
+   * @param rpc - rpc connection used to interact with the node
+   * @param fromAccountData - sender account data, required to sign the transaction
+   * @param to - receiver address
+   */
+  static create = async (rpc: RPC, fromAccountData: AccountData, to: Address): Promise<Cid> => {
+    const { address: from } = fromAccountData
+    if (to.getNetworkPrefix() !== from.getNetworkPrefix()) throw new Error('both "from" and "to" addressees should belong to the same network')
+
+    // Get payment channel data
+    const payChanCid = getActorCidsFromNetwork(rpc.getNetwork()).PaymentChannel
+    const payChanParams = await new ConstructorParams(from, to).serialize()
+
+    // Create exec tx to init new actor
+    const execParams = new ExecParams(payChanCid, payChanParams)
+    const tx = await InitActor.newExecTx(from, Token.zero(), execParams)
+
+    return await PaymentChannel.sendTx(rpc, fromAccountData, tx)
+  }
+
+  /**
+   * Allows to load a new payment channel instance from the result of a creation transaction previously broadcast to the blockchain.
+   * @param rpc - rpc connection used to interact with the node
+   * @param from - sender address
+   * @param to - receiver address
+   * @param cid - id of the transaction to create the payment channel (broadcast to the network)
+   * @returns new PaymentChannel instance
+   */
+  static loadFromCid = async (rpc: RPC, from: Address, to: Address, cid: Cid): Promise<PaymentChannel> => {
+    const creationResult = await rpc.waitMsgState({ '/': cid }, 1, 100)
+    if ('error' in creationResult) throw new Error(creationResult.error.message)
+    if (!creationResult.result.ReturnDec) throw new Error('new payment channel address missing')
+
+    const channelAddr = Address.fromString(creationResult.result.ReturnDec.RobustAddress)
+    return new PaymentChannel(channelAddr, from, to)
+  }
+
+  /**
+   * Sets the settlesAt property on the payment channel - a block height after which the channel can’t be updated.
+   * @param rpc - rpc connection used to interact with the node
+   * @param accountData - whether the sender or receiver can settle the payment channel
+   */
+  settle = (rpc: RPC, accountData: AccountData): Promise<Cid> => {
+    const { address: from } = accountData
+    const tx = Transaction.getNew(this.channelAddress, from, Token.zero(), PayChActorMethods.Settle)
+
+    return PaymentChannel.sendTx(rpc, accountData, tx)
+  }
+
+  /**
+   * After the channel is settled, it can be collected. This causes some value to be sent to receiver and the rest of the channel balance to be returned to sender.
+   * @param rpc - rpc connection used to interact with the node
+   * @param accountData - whether the sender or receiver can collect the payment channel
+   */
+  collect = (rpc: RPC, accountData: AccountData): Promise<Cid> => {
+    const { address: from } = accountData
+    const tx = Transaction.getNew(this.channelAddress, from, Token.zero(), PayChActorMethods.Collect)
+
+    return PaymentChannel.sendTx(rpc, accountData, tx)
+  }
+
+  /**
+   * Prepare tx to send, sign and broadcast it
+   * @param rpc - rpc connection used to interact with the node
+   * @param accountData - sender account data, required to sign the tx
+   * @param tx - transaction to be signed and broadcast
+   * @returns transaction id
+   */
+  protected static sendTx = async (rpc: RPC, accountData: AccountData, tx: Transaction): Promise<Cid> => {
+    await tx.prepareToSend(rpc)
+
+    // Sign tx
+    const signature = await Wallet.signTransaction(accountData, tx)
+
+    // Broadcast tx
+    const response1 = await rpc.broadcastTransaction(tx, signature)
+    if ('error' in response1) throw new Error(response1.error.message)
+
+    // return the tx cid
+    return response1.result['/']
+  }
+}
+```
+
+
+The PaymentChannel class is used to interact with a payment channel on the Filecoin network. A payment channel is a way for two parties to transact with each other off-chain, without the need for multiple on-chain transactions. Instead, they create a payment channel and deposit some funds into it. Then they can make multiple transactions off-chain, updating the balance of the payment channel each time. Once they are done, they settle the payment channel on-chain and the final balance is distributed according to the agreed terms.
+
+The PaymentChannel class provides methods to create a new payment channel, load an existing payment channel, settle a payment channel, and collect funds from a settled payment channel. It also provides getters to access the payment channel's address and the addresses of the sender and receiver.
+
+To use the PaymentChannel class, you need to provide the necessary information such as the RPC connection used to interact with the network, the sender and receiver addresses, and account data required to sign and broadcast transactions. You can then use the methods provided by the class to perform various actions on the payment channel, such as settling or collecting funds.

@@ -1,11 +1,201 @@
-# Introduction
- 
-Welcome to Nextra! This is a basic docs template. You can use it as a starting point for your own project :)
+import {Tab, Tabs} from "nextra-theme-docs";
+import ZondaxLogo from "../components/ZondaxLogo";
 
-## What is Nextra?
+<div className="flex justify-center">
+    <ZondaxLogo width={350} height={120}/>
+</div>
 
-A **simple**, **powerful** and **flexible** site generation framework with everything you love from Next.js.
+Izari Filecoin is a comprehensive set of tools designed to interact with Blockchains. With its focus on compatibility, it provides developers with a versatile and flexible solution that can be used across a range of environments,
+from web projects using React to backend applications using NodeJS. It enables developers to easily manage and access blockchain data, including transactions, smart contracts, and assets.
 
-## Documentation
+Izari Filecoin makes it easy for developers to incorporate blockchain technology into their projects, unlocking new possibilities for innovation and growth.Izari Filecoin makes it easy for developers to incorporate blockchain technology into their projects, unlocking new possibilities for innovation and growth.
 
-The documentation is available at [https://nextra.site](https://nextra.site).
+Some key points:
+ - It is written in **Typescript**
+ - It is composed by **pure JS**
+ - It is tested on **many environments**
+ - It is transpiled to two different flavours:
+ - **CommonJS (es2015)**
+ - **ESM (esnext)**
+
+
+{/* prettier-ignore-start */}
+
+<div className="max-w-xs mx-auto mt-5 mb-8 text-center install">
+    <Tabs items={['npm', 'yarn']}>
+        <Tab>
+            ```bash copy
+            npm install @zondax/izari-filecoin
+            ```
+        </Tab>
+        <Tab>
+            ```bash copy
+            yarn add @zondax/izari-filecoin
+            ```
+        </Tab>
+    </Tabs>
+</div>
+{/* prettier-ignore-end */}
+
+## Overview
+
+```ts
+import {
+  Account,
+  Address,
+  Network,
+  RPC,
+  SignatureType,
+  Token,
+  Wallet,
+} from "@zondax/izari-filecoin";
+
+const network = process.env.NETWORK;
+const nodeUrl = process.env.NODE_RPC_URL;
+const nodeToken = process.env.NODE_RPC_TOKEN;
+const mnemonic = process.env.ACCOUNT_MNEMONIC;
+const sender_path = "44'/461'/0'/0/0"; // f16evrgvbuk3htf44rrp647zrwzuglk4ynoiivvgi
+const rpcNode = new RPC(network, { url: nodeUrl, token: nodeToken });
+
+const senderAccountData = Wallet.deriveAccount(
+  mnemonic,
+  SignatureType.SECP256K1,
+  sender_path,
+  ""
+);
+
+const receiverAddress = Address.fromEthAddress(
+  Network.Mainnet,
+  "0x689c9B3232210aa9B84Ef444D0Ef35D11102AD1F"
+);
+
+const cid = await Account.send(
+  rpcNode,
+  senderAccountData,
+  receiverAddress,
+  Token.fromAtto("100")
+);
+
+await rpcNode.waitMsgState({ "/": cid }); // Wait until the tx is confirmed
+```
+
+This code uses the @zondax/izari-filecoin library to send 100 Filecoin tokens from a sender's address to a recipient's address. The code derives the sender's account data (private key, public key, and address) from a mnemonic, and uses the Filecoin network's JSON-RPC API to send the tokens.
+
+## Features
+
+### Node Comms
+
+Allow you to communicate to the filecoin node in order to fetch on-chain data (miners, fees, nonce, etc), broadcast new transactions and more.
+
+| Feature  | Supported?         |
+|--------------------------|--------------------|
+| Get next nonce           | ✅ |
+| Estimate fees for new tx | ✅ |
+| Broadcast a new tx       | ✅ |
+| Read tx state            | ✅ |
+| Wait for tx to appear    | ✅ |
+| -        | -  |
+| Get miners               | ✅ |
+| Get miner info           | ✅ |
+| Ask for storage to miner | ✅ |
+
+### Addresses
+
+Allow you to easily handle the entire set of filecoin address types available. You will be able to inspect how each address is composed, convert from
+string format to bytes format, parse from both formats, etc. For more information about filecoin addresses, please
+refer to [this doc](https://spec.filecoin.io/appendix/address/)
+
+| Feature           | ID (f0)              | SECP256K1 (f1)         | Actor (f2)            | BLS (f3)             | Delegated (f4)     |
+|-------------------|----------------------|------------------------|-----------------------|----------------------|--------------------|
+| Parse from string | ✅   | ✅     | ✅    | ✅   | ✅ |
+| Parse from bytes  | ✅   | ✅     | ✅    | ✅   | ✅ |
+| Encode to bytes   | ✅   | ✅     | ✅    | ✅   | ✅ |
+| Encode to string  | ✅   | ✅     | ✅    | ✅   | ✅ |
+| Get payload       | ✅   | ✅     | ✅    | ✅   | ✅ |
+| Get protocol      | ✅   | ✅     | ✅    | ✅   | ✅ |
+| Get network type  | ✅   | ✅     | ✅    | ✅   | ✅ |
+| Get namespace     | ➖   | ➖     | ➖    | ➖   | ✅ |
+| Get sub address   | ➖   | ➖     | ➖    | ➖   | ✅ |
+
+### Ethereum Addresses
+This is a particular case for a delegated address. Ethereum addresses on the Filecoin EVM are handled by the ethereum account manager, which actor id is 10.
+For this reason, there is a particular class to handle Ethereum addresses conversions. It will help you to get the filecoin equivalent address from an
+ethereum address, either string or bytes format. Besides, you can do the other way around: get the ethereum address from a filecoin one (f4/t4).
+
+
+### Tokens
+
+Allow you to easily manage denominations used within Filecoin to do conversions between them, arithmetical operations, etc.
+
+| Feature        | Denomination       |
+|--------------------------------|--------------------|
+| Parse from string              | ✅ |
+| Deserialize from buffer        | ✅ |
+| Serialize to buffer            | ✅ |
+| Addition, subtraction, etc     | ✅ |
+| Convert to other denominations | ✅ |
+| Positive, negative, zero       | ✅ |
+
+**All denominations supported: atto, femto, pico, nano, micro, milli and whole.**
+
+### Transactions
+
+In order to interact to the Filecoin network, transactions need to be sent to it. These features will allow you to create and manipulate them in an easy and
+intuitive way. From creating new ones with minimum arguments or serializing them to CBOR or JSON, to fetch values from the network that they need in order to
+be valid to be sent.
+
+| Feature              | Supported?         |
+|--------------------------------------|--------------------|
+| Create new instance  | ✅ |
+| Parse from raw json  | ✅ |
+| Parse from serialized| ✅ |
+| Export to json       | ✅ |
+| Serialize (to cbor)  | ✅ |
+| Prepare to send (get nonce and fees) | ✅ |
+
+### Wallet
+
+These features group actions related to wallets itself: from creating new ones, deriving addresses
+from it, and signing new txs to be broadcast.
+
+| Feature  | f1/secp256k1       | f3/bls             |
+|--------------------------|--------------------|--------------------|
+| Generate new mnemonic    | ✅ | ✅ |
+| Derive key from seed     | ✅ | ❌|
+| Derive key from mnemonic | ✅ | ❌|
+| Sign transactions        | ✅ | ❌|
+| Verify signatures        | ✅ | ❌|
+
+### Account
+
+These features group actions related to high-level account features like send funds, fetch balances, etc.
+
+| Feature               | Supported?          |
+|-----------------------|---------------------|
+| Send funds to address | ✅  |
+| Fetch current balance | ✅  |
+
+
+### Payment Channel [🔗](https://www.evernote.com/shard/s10/client/snv?noteGuid=135ecd3b-b743-4f6d-8943-e9c381fbf7df&noteKey=51f2120ace7d6ed6&sn=https%3A%2F%2Fwww.evernote.com%2Fshard%2Fs10%2Fsh%2F135ecd3b-b743-4f6d-8943-e9c381fbf7df%2F51f2120ace7d6ed6&title=Filecoin%2527s%2Bexisting%2Bpayment%2Bchannels%2B-%2BFilecoin%2BRetrieval%2BMarket%2B-%2BConfluence)
+
+A payment channel on the Filecoin blockchain is a mechanism that allows two parties to transact with each other off-chain
+without requiring each transaction to be recorded on the blockchain. This feature allows users to handle the whole
+payment channel lifecycle: create, update, settle and collect.
+
+| Feature            | Supported?         |
+|--------------------|--------------------|
+| Create new channel | ✅ |
+| Create new voucher | ❌|
+| Sign voucher       | ❌|
+| Update channel     | ❌|
+| Settle             | ✅ |
+| Collect            | ✅ |
+
+
+## Community
+
+Check out the following places for more information about Izari Filecoin:
+
+- Zondax Website: [https://zondax.ch](https://zondax.ch)
+- Filecoin Website: [https://filecoin.io](https://filecoin.io)
+- FVM Filecoin Website: [https://fvm.filecoin.io](https://fvm.filecoin.io)

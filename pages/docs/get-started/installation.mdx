@@ -1,0 +1,56 @@
+Just run the following command to add the package to your project
+
+```bash copy
+yarn add @zondax/izari-filecoin
+```
+or
+```bash copy
+npm install --save @zondax/izari-filecoin
+```
+
+### Use
+The package can be imported easily on any place you need it. Choose the way to import it based on the loader module you use.
+
+For ESM modules
+```typescript
+import { Wallet, Transaction, Account } from "@zondax/izari-filecoin"
+```
+
+For CommonJS modules
+```typescript
+const { Wallet, Transaction, Account } = require("@zondax/izari-filecoin")
+```
+
+**Notes**
+
+The `tests/jest` folder is a great place to understand more about each one of the available features, and have a sense on how to
+use them. Besides, if you are interested in one particular environment, like NodeJS or React, `tests/package` can have the answer
+you are looking for. Please, give them a chance!
+
+### Specific features
+Inside this package there are several entry points grouped by features. If you only need to use specific features among all others, please choose the entry point you want to import from
+
+| Entry point                          | Features                    |
+|--------------------------------------|-----------------------------|
+| `@zondax/izari-filecoin`             | All features                |
+| `@zondax/izari-filecoin/rpc`         | Node Communications         |
+| `@zondax/izari-filecoin/address`     | Address                     |
+| `@zondax/izari-filecoin/transaction` | Transaction                 |
+| `@zondax/izari-filecoin/wallet`      | Wallet                      |
+| `@zondax/izari-filecoin/account`     | Account                     |
+| `@zondax/izari-filecoin/artifacts`   | Types, constants and errors |
+| `@zondax/izari-filecoin/payment`     | Payment Channel             |
+
+**Note:** More information about these approach and its advantages can be found [here](https://webpack.js.org/guides/package-exports/) and [here](https://dev.to/binjospookie/exports-in-package-json-1fl2).
+
+## Requisites
+- NodeJS >= 16.0.0
+- Native BigInt support (or global polyfill)
+
+**Notes**
+- Izari-Filecoin is not using native BigInt implementation internally. However, some dependencies are, and that is why it is required. One of them is `cborg`, which is used by `@ipld/dag-cbor`.
+
+### React
+- In order to use this package in browsers (like react, react-native, etc), some modules need to be polyfill (like Buffer, stream, etc). Most projects use
+webpack to bundle JS code.  If your project uses it, please refer to [this](https://webpack.js.org/configuration/resolve/#resolvefallback) doc in order to configure it correctly.
+Besides, you could check [this blog post](https://viglucci.io/articles/how-to-polyfill-buffer-with-webpack-5) too.

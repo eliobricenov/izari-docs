@@ -1,0 +1,77 @@
+## Development
+### Build
+
+Clone the repo and install all dependencies
+```bash copy
+git clone https://github.com/Zondax/izari-filecoin.git && cd izari-filecoin
+```
+
+In order to install all required dependencies, just need to run the following command
+```bash
+yarn install
+```
+
+Then, if you want to build the package, just need to run the following command. It will build both CJS and ESM flavours.
+```bash
+yarn build
+```
+
+### Testing
+
+The repo has established a set of rules to run ESLint in order to catch typos and possible bugs as soon as possible.
+```bash
+yarn lint
+```
+
+Besides the linter, a formatter is set in place to assure the same code style through our developers.
+```bash
+yarn format
+```
+
+Test cases generated automatically and are written in json files. Those files are consumed by jest to create on case for each scenario. In order to create those files
+from a raw input file, just run the following command.
+```bash
+yarn test:generate
+```
+
+Finally, in order to run tests, there are a variaty of commands you can run
+based on the scenario you want to check. Please, take a look at the following table.
+
+| Test                             | Link                     |
+|----------------------------------|--------------------------|
+| All                              | `yarn test`              |
+| All / Silent                     | `yarn test:silent`       |
+| Jest / All                       | `yarn test:jest`        |
+| Jest / All / Silent              | `yarn test:jest:silent`  |
+| Jest / Node NO Required          | `yarn test:logic`        |
+| Jest / Node NO Required / Silent | `yarn test:logic:silent` |
+| Jest / Node Required             | `yarn test:rpc`          |
+| Jest / Node Required / Silent    | `yarn test:rpc:silent`   |
+| NodeJS (CJS and ESM)             | `yarn test:node`         |
+| NodeJS (CJS)                     | `yarn test:node:cjs`     |
+| NodeJS (ESM)                     | `yarn test:node:esm`     |
+| React                            | `yarn test:react`        |
+
+### Notes
+
+#### Silent mode
+There are many test cases that are run on Jest. In order to make the output cleaner, silent mode uses a custom reporter [🔗](https://www.npmjs.com/package/jest-silent-reporter),
+which silents results where the case passed.
+
+#### Environmental vars
+Please, there are some env vars you need to set first in order to run the tests:
+  - Some tests will try to connect to a node in order to run some transactions. Therefore, **a node rpc url and token will be required.**
+  - Some of those transactions includes token transfers. For that reason, an account seed is required. We will derive some
+accounts from it. **Those accounts must have some tokens in order to be able to test transfers.**
+
+#### Faucets
+
+Here you can find faucets for each testnet you want to test the library on
+
+| Network     | Link                                                               |
+|-------------|--------------------------------------------------------------------|
+| Devnet      | ❌                                                                |
+| Hypersapce  | [🔗](https://beryx.zondax.ch/faucet)                           |
+| Butterfly   | ❌                                                                |
+| Calibration | [🔗](https://faucet.triangleplatform.com/filecoin/calibration) |
+| Mainnet     | ➖                                                 |
