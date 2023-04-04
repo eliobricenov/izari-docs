@@ -9,4 +9,5 @@
 - [Next.js](https://nextjs.org)
 - [Nextra](https://nextra.site/)
 - [Tailwind CSS](https://tailwindcss.com/)
+- [ChatGPT](https://chat.openai.com/chat) for documentation generation
 
